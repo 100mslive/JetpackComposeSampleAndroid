@@ -19,6 +19,7 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
+        buildConfigField "String", "TOKEN_ENDPOINT", TOKEN_ENDPOINT
     }
 
     buildTypes {
