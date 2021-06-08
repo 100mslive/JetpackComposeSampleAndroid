@@ -9,6 +9,7 @@ import live.hms.video.sdk.HMSUpdateListener
 import live.hms.video.sdk.models.HMSConfig
 import javax.inject.Inject
 
+
 class LoginRepository @Inject constructor(
     private val tokenRequestApi: TokenRequestApi,
     private val hmssdk: HMSSDK
@@ -19,7 +20,8 @@ class LoginRepository @Inject constructor(
     }
 
     fun joinRoom(userName: String, authToken: String, updateListener : HMSUpdateListener) {
-            val config = HMSConfig(userName, authToken)
-            hmssdk.join(config,updateListener)
+        val config = HMSConfig(userName, authToken)
+        hmssdk.join(config,updateListener)
     }
+
 }

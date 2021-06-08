@@ -13,6 +13,7 @@ import live.hms.video.sdk.models.HMSRoom
 import live.hms.video.sdk.models.enums.HMSPeerUpdate
 import live.hms.video.sdk.models.enums.HMSRoomUpdate
 import live.hms.video.sdk.models.enums.HMSTrackUpdate
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,35 +22,42 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
     private val userName : MutableState<String> = mutableStateOf("")
     private val loginState : MutableState<LoginState> = mutableStateOf(LoginState.IDLE)
 
-    private val roomState : MutableState<RoomState> = mutableStateOf(RoomState(null))
+    private val roomName : MutableState<String> = mutableStateOf("")
+    private val peers : MutableState<List<HMSPeer>> = mutableStateOf(emptyList<HMSPeer>())
+
+    private val chatMessages : MutableState<List<HMSMessage>> = mutableStateOf(emptyList())
 
     fun login(name : String) {
         loginRepository.login(name)
             .map{ loginRepository.joinRoom(name, it.token, object : HMSUpdateListener{
                 override fun onError(error: HMSException) {
-                    TODO("Not yet implemented")
-                    // Report errors
+                    Timber.e("There was an error ${error.description}")
                 }
 
                 override fun onJoin(room: HMSRoom) {
-                    TODO("Not yet implemented")
+                    Timber.d("Room joined")
                     // Loading complete, move to display
+                    roomName.value = room.name
+                    peers.value = room.peerList.asList()
+                    loginState.value = LoginState.LoggedIn
                 }
 
                 override fun onMessageReceived(message: HMSMessage) {
-                    TODO("Not yet implemented")
+                    chatMessages.value = chatMessages.value.plus(message)
                 }
 
                 override fun onPeerUpdate(type: HMSPeerUpdate, peer: HMSPeer) {
-                    TODO("Not yet implemented")
+                    // Handle peer updates.
+                    Timber.d("There was a peer update: $type")
                 }
 
                 override fun onRoomUpdate(type: HMSRoomUpdate, hmsRoom: HMSRoom) {
-                    TODO("Not yet implemented")
+                    Timber.d("Room updated: $type")
                 }
 
                 override fun onTrackUpdate(type: HMSTrackUpdate, track: HMSTrack, peer: HMSPeer) {
-                    TODO("Not yet implemented")
+                    // Somebody's audio/video changed
+                    Timber.d("OnTrackUpdate: $type")
                 }
 
             }) }
@@ -58,13 +66,9 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
 
 }
 
-data class RoomState(
-    val currentRoom : HMSRoom?
-)
-
 sealed class LoginState {
     object IDLE : LoginState()
     object LOADING : LoginState()
-    data class LoggedIn(val userName : String) : LoginState()
+    object LoggedIn : LoginState()
     data class Error(val exception : Exception) : LoginState()
 }
