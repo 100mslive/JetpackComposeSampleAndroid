@@ -33,9 +33,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun providesOkHttpClient(cache: Cache): OkHttpClient {
+    fun providesOkHttpClient(): OkHttpClient {
         val client = OkHttpClient.Builder()
-            .cache(cache)
             .connectTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
