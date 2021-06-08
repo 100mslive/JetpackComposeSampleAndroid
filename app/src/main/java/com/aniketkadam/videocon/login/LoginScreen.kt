@@ -29,7 +29,8 @@ fun LoginScreen(login: (userName: String) -> Unit) {
             onValueChange = { userName = it },
             label = { Text("What's your name?") }
         )
-        Spacer(modifier = Modifier.height(4.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = { login(userName) }) {
             Text("Join")
