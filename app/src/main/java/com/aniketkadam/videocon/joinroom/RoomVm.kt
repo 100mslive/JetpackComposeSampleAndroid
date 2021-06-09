@@ -1,6 +1,7 @@
 package com.aniketkadam.videocon.joinroom
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,10 +21,13 @@ import javax.inject.Inject
 class RoomVm @Inject constructor(private val loginRepository: LoginRepository) : ViewModel() {
 
     private val userName : MutableState<String> = mutableStateOf("")
-    private val loginState : MutableState<LoginState> = mutableStateOf(LoginState.IDLE)
+    private val _loginState : MutableState<LoginState> = mutableStateOf(LoginState.IDLE)
+    val loginState : State<LoginState> = _loginState
+
 
     private val roomName : MutableState<String> = mutableStateOf("")
-    private val peers : MutableState<List<HMSPeer>> = mutableStateOf(emptyList<HMSPeer>())
+    private val _peers : MutableState<List<HMSPeer>> = mutableStateOf(emptyList<HMSPeer>())
+    val peers : State<List<HMSPeer>> = _peers
 
     private val chatMessages : MutableState<List<HMSMessage>> = mutableStateOf(emptyList())
 
@@ -32,14 +36,15 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
             .map{ loginRepository.joinRoom(name, it.token, object : HMSUpdateListener{
                 override fun onError(error: HMSException) {
                     Timber.e("There was an error ${error.description}")
+                    _loginState.value = LoginState.Error(error)
                 }
 
                 override fun onJoin(room: HMSRoom) {
                     Timber.d("Room joined")
                     // Loading complete, move to display
                     roomName.value = room.name
-                    peers.value = room.peerList.asList()
-                    loginState.value = LoginState.LoggedIn
+                    _peers.value = room.peerList.asList()
+                    _loginState.value = LoginState.LoggedIn
                 }
 
                 override fun onMessageReceived(message: HMSMessage) {
