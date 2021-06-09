@@ -37,7 +37,7 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
     fun login(name: String) {
         _loginState.value = LoginState.LOADING
         disposable.add(
-            joinRoom(name)
+            roomUpdatesObservable(name)
                 .subscribeOn(Schedulers.io())
                 .subscribe(
                     {},
@@ -46,7 +46,7 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
         )
     }
 
-    private fun joinRoom(name: String): Observable<Unit> = loginRepository.login(name)
+    private fun roomUpdatesObservable(name: String): Observable<Unit> = loginRepository.login(name)
         .doOnError {
             Timber.e("Error getting token: ${it.message}")
         }
