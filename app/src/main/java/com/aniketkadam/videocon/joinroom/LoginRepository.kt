@@ -33,4 +33,7 @@ class LoginRepository @Inject constructor(
         hmssdk.join(config, updateListener)
     }
 
+    fun leaveRoom() {
+        hmssdk.leave()
+    }
 }

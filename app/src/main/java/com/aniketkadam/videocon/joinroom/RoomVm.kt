@@ -87,6 +87,7 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
         }
 
     override fun onCleared() {
+        loginRepository.leaveRoom()
         disposable.dispose()
         super.onCleared()
     }
