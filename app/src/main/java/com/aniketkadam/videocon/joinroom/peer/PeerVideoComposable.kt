@@ -7,7 +7,7 @@ import org.webrtc.EglBase
 import org.webrtc.SurfaceViewRenderer
 
 @Composable
-fun PeerVideoComposeable(peer: HMSPeer) {
+fun PeerVideoComposable(peer: HMSPeer) {
 
     AndroidView(
         factory = { context ->
