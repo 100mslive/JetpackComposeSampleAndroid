@@ -23,9 +23,14 @@ class LoginRepository @Inject constructor(
         return tokenRequestApi.getToken(TokenRequest(userId = userName, roomId = roomId))
     }
 
-    fun joinRoom(userName: String, authToken: String, updateListener : HMSUpdateListener) {
-        val config = HMSConfig(userName, authToken)
-        hmssdk.join(config,updateListener)
+    fun joinRoom(userName: String, authToken: String, updateListener: HMSUpdateListener) {
+        val info = JsonObject().apply { addProperty("name", userName) }
+        val config = HMSConfig(
+            userName = userName,
+            authtoken = authToken,
+            metadata = info.toString()
+        )
+        hmssdk.join(config, updateListener)
     }
 
 }
