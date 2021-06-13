@@ -7,20 +7,29 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.runtime.LaunchedEffect
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navArgument
 import androidx.navigation.compose.rememberNavController
-import com.aniketkadam.videocon.joinroom.LoginState
+import com.aniketkadam.videocon.baseviewmodels.NavHelper
 import com.aniketkadam.videocon.joinroom.RoomVm
 import com.aniketkadam.videocon.joinroom.VideosListComposable
+import com.aniketkadam.videocon.joinroom.di.RoomVmAssistedFactory
 import com.aniketkadam.videocon.loading.LoadingScreen
 import com.aniketkadam.videocon.login.LoginScreen
+import com.aniketkadam.videocon.login.LoginVm
+import com.aniketkadam.videocon.navigation.Screen
 import com.aniketkadam.videocon.ui.theme.VideoConTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var roomVmServiceFactory: RoomVmAssistedFactory
+
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,36 +38,37 @@ class MainActivity : ComponentActivity() {
                 Surface(color = MaterialTheme.colors.background) {
                     val navController = rememberNavController()
 
-                    val vm by viewModels<RoomVm>()
+                    NavHost(navController, startDestination = Screen.LOGIN.route) {
 
-                    NavHost(navController, startDestination = "login") {
-
-                        composable("login") {
-                            LoginScreen(vm::login)
+                        composable(Screen.LOGIN.route) {
+                            val loginVm = hiltViewModel<LoginVm>()
+                            NavHelper(navController, loginVm.navigate.value)
+                            LoginScreen(loginVm::login)
                         }
 
-                        composable("loading") {
+                        composable("loading?userName={userName}",
+                            arguments = listOf(navArgument("userName") {
+                                nullable = false
+                                type = NavType.StringType
+                            })
+                        ) { backStackEntry ->
+
+                            val userName = backStackEntry.arguments!!.getString("userName")!!
+
+                            val roomVm: RoomVm by viewModels { roomVmServiceFactory.create(userName) }
+                            NavHelper(navController, roomVm.navigate.value)
                             LoadingScreen()
                         }
 
-                        composable("room") {
-                            VideosListComposable(vm.peers)
+                        composable(Screen.ROOM.route) {
+                            val roomVm: RoomVm by viewModels()
+                            VideosListComposable(roomVm.peers)
                         }
                     }
 
-                    LaunchedEffect(key1 = vm.loginState.value) {
-                        when (vm.loginState.value) {
-                            is LoginState.Error -> { // Just showing login again
-                                navController.navigate("login")
-                            }
-                            LoginState.LOADING -> navController.navigate("loading")
-                            LoginState.LoggedIn -> navController.navigate("room")
-                            LoginState.IDLE -> {
-                            }
-                        }
-                    }
                 }
             }
         }
     }
+
 }
