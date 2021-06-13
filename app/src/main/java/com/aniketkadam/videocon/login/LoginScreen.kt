@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoginScreen(login: (userName: String) -> Unit) {
-    var userName by rememberSaveable { mutableStateOf("") }
+    var userName by rememberSaveable { mutableStateOf("Android User") }
 
     Column(
         Modifier.fillMaxSize(),
