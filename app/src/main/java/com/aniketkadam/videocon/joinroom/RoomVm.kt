@@ -3,13 +3,15 @@ package com.aniketkadam.videocon.joinroom
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
+import androidx.compose.runtime.neverEqualPolicy
+import com.aniketkadam.videocon.baseviewmodels.NavigableViewModel
+import com.aniketkadam.videocon.navigation.Screen
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import live.hms.video.error.HMSException
 import live.hms.video.media.tracks.HMSTrack
+import live.hms.video.media.tracks.HMSTrackType
 import live.hms.video.sdk.HMSUpdateListener
 import live.hms.video.sdk.models.HMSMessage
 import live.hms.video.sdk.models.HMSPeer
@@ -18,30 +20,25 @@ import live.hms.video.sdk.models.enums.HMSPeerUpdate
 import live.hms.video.sdk.models.enums.HMSRoomUpdate
 import live.hms.video.sdk.models.enums.HMSTrackUpdate
 import timber.log.Timber
-import javax.inject.Inject
 
-@HiltViewModel
-class RoomVm @Inject constructor(private val loginRepository: LoginRepository) : ViewModel() {
+class RoomVm constructor(private val loginRepository: LoginRepository, userName: String) :
+    NavigableViewModel() {
 
     private val disposable = CompositeDisposable()
-    private val userName: MutableState<String> = mutableStateOf("")
-    private val _loginState: MutableState<LoginState> = mutableStateOf(LoginState.IDLE)
-    val loginState: State<LoginState> = _loginState
 
-    private val roomName: MutableState<String> = mutableStateOf("")
-    private val _peers: MutableState<List<HMSPeer>> = mutableStateOf(emptyList<HMSPeer>())
+    private val _peers: MutableState<List<HMSPeer>> =
+        mutableStateOf(emptyList(), neverEqualPolicy())
     val peers: State<List<HMSPeer>> = _peers
 
     private val chatMessages: MutableState<List<HMSMessage>> = mutableStateOf(emptyList())
 
-    fun login(name: String) {
-        _loginState.value = LoginState.LOADING
+    init {
         disposable.add(
-            roomUpdatesObservable(name)
+            roomUpdatesObservable(userName)
                 .subscribeOn(Schedulers.io())
                 .subscribe(
                     {},
-                    { e -> _loginState.value = LoginState.Error(e) }
+                    { _navigate.value = Screen.LOGIN } // return to login on error
                 )
         )
     }
@@ -55,15 +52,14 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
             loginRepository.joinRoom(name, it.token, object : HMSUpdateListener {
                 override fun onError(error: HMSException) {
                     Timber.e("There was an error ${error.description}")
-                    _loginState.value = LoginState.Error(error)
+//                    Error doesn't necessarily mean an unrecoverable error.
                 }
 
                 override fun onJoin(room: HMSRoom) {
                     Timber.d("Room joined")
                     // Loading complete, move to display
-                    roomName.value = room.name
                     _peers.value = room.peerList.asList()
-                    _loginState.value = LoginState.LoggedIn
+                    _navigate.value = Screen.ROOM
                 }
 
                 override fun onMessageReceived(message: HMSMessage) {
@@ -72,6 +68,22 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
 
                 override fun onPeerUpdate(type: HMSPeerUpdate, peer: HMSPeer) {
                     // Handle peer updates.
+                    when (type) {
+                        HMSPeerUpdate.PEER_JOINED -> _peers.value = _peers.value.plus(peer)
+                        HMSPeerUpdate.PEER_LEFT -> _peers.value =
+                            _peers.value.filter { currentPeer -> currentPeer.peerID != peer.peerID }
+                        HMSPeerUpdate.VIDEO_TOGGLED -> {
+                            Timber.d("${peer.name} video toggled")
+                        }
+
+                        HMSPeerUpdate.AUDIO_TOGGLED,
+                        HMSPeerUpdate.BECAME_DOMINANT_SPEAKER,
+                        HMSPeerUpdate.NO_DOMINANT_SPEAKER,
+                        HMSPeerUpdate.RESIGNED_DOMINANT_SPEAKER,
+                        HMSPeerUpdate.STARTED_SPEAKING,
+                        HMSPeerUpdate.STOPPED_SPEAKING -> {
+                        }
+                    }
                     Timber.d("There was a peer update: $type")
                 }
 
@@ -82,6 +94,23 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
                 override fun onTrackUpdate(type: HMSTrackUpdate, track: HMSTrack, peer: HMSPeer) {
                     // Somebody's audio/video changed
                     Timber.d("OnTrackUpdate: $type")
+                    when (type) {
+                        HMSTrackUpdate.TRACK_MUTED,
+                        HMSTrackUpdate.TRACK_UNMUTED,
+                        HMSTrackUpdate.TRACK_ADDED,
+                        HMSTrackUpdate.TRACK_REMOVED
+                        -> {
+                            Timber.d("Checking, $type, $track")
+                            if (track.type == HMSTrackType.VIDEO) {
+                                _peers.value =
+                                    _peers.value.filter { currentPeer -> currentPeer.peerID != peer.peerID }
+                                        .plus(peer)
+                            } else {
+                                Timber.d("Not processed, $type, $track")
+                            }
+                        }
+                        HMSTrackUpdate.TRACK_DESCRIPTION_CHANGED -> Timber.d("Other mute/unmute $type, $track")
+                    }
                 }
             })
         }
@@ -91,11 +120,4 @@ class RoomVm @Inject constructor(private val loginRepository: LoginRepository) :
         disposable.dispose()
         super.onCleared()
     }
-}
-
-sealed class LoginState {
-    object IDLE : LoginState()
-    object LOADING : LoginState()
-    object LoggedIn : LoginState()
-    data class Error(val exception: Throwable) : LoginState()
 }
