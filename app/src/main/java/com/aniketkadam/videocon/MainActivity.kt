@@ -1,5 +1,6 @@
 package com.aniketkadam.videocon
 
+import android.app.PictureInPictureParams
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -69,6 +70,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        enterPictureInPictureMode(PictureInPictureParams.Builder().build())
     }
 
 }
