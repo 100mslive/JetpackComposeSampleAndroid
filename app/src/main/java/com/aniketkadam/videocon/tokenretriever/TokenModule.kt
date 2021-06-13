@@ -3,10 +3,10 @@ package com.aniketkadam.videocon.tokenretriever
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.components.ActivityRetainedComponent
 import retrofit2.Retrofit
 
-@InstallIn(ViewModelComponent::class)
+@InstallIn(ActivityRetainedComponent::class)
 @Module
 object TokenModule {
     @Provides
