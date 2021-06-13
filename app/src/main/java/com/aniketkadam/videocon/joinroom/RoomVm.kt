@@ -21,7 +21,7 @@ import live.hms.video.sdk.models.enums.HMSRoomUpdate
 import live.hms.video.sdk.models.enums.HMSTrackUpdate
 import timber.log.Timber
 
-class RoomVm constructor(private val loginRepository: LoginRepository, userName: String) :
+class RoomVm constructor(private val roomRepository: RoomRepository, userName: String) :
     NavigableViewModel() {
 
     private val disposable = CompositeDisposable()
@@ -43,13 +43,13 @@ class RoomVm constructor(private val loginRepository: LoginRepository, userName:
         )
     }
 
-    private fun roomUpdatesObservable(name: String): Observable<Unit> = loginRepository.login(name)
+    private fun roomUpdatesObservable(name: String): Observable<Unit> = roomRepository.login(name)
         .doOnError {
             Timber.e("Error getting token: ${it.message}")
         }
         .map {
             Timber.d("A token response was received")
-            loginRepository.joinRoom(name, it.token, object : HMSUpdateListener {
+            roomRepository.joinRoom(name, it.token, object : HMSUpdateListener {
                 override fun onError(error: HMSException) {
                     Timber.e("There was an error ${error.description}")
 //                    Error doesn't necessarily mean an unrecoverable error.
@@ -116,7 +116,7 @@ class RoomVm constructor(private val loginRepository: LoginRepository, userName:
         }
 
     override fun onCleared() {
-        loginRepository.leaveRoom()
+        roomRepository.leaveRoom()
         disposable.dispose()
         super.onCleared()
     }

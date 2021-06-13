@@ -11,7 +11,7 @@ import live.hms.video.sdk.models.HMSConfig
 import javax.inject.Inject
 
 
-class LoginRepository @Inject constructor(
+class RoomRepository @Inject constructor(
     private val tokenRequestApi: TokenRequestApi,
     private val hmssdk: HMSSDK
 ) {
