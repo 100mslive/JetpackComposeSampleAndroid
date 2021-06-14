@@ -1,5 +1,6 @@
 package com.aniketkadam.videocon
 
+import android.Manifest
 import android.app.PictureInPictureParams
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.runtime.InternalComposeApi
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,6 +24,8 @@ import com.aniketkadam.videocon.loading.LoadingScreen
 import com.aniketkadam.videocon.login.LoginScreen
 import com.aniketkadam.videocon.login.LoginVm
 import com.aniketkadam.videocon.navigation.Screen
+import com.aniketkadam.videocon.permissions.NeedsPermission
+import com.aniketkadam.videocon.permissions.checkSelfPermissionState
 import com.aniketkadam.videocon.ui.theme.VideoConTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -31,6 +35,7 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var roomVmServiceFactory: RoomVmAssistedFactory
 
+    @InternalComposeApi
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,34 +44,49 @@ class MainActivity : ComponentActivity() {
                 Surface(color = MaterialTheme.colors.background) {
                     val navController = rememberNavController()
 
-                    NavHost(navController, startDestination = Screen.LOGIN.route) {
+                    val cameraPermission = checkSelfPermissionState(
+                        this,
+                        Manifest.permission.CAMERA
+                    )
 
-                        composable(Screen.LOGIN.route) {
-                            val loginVm = hiltViewModel<LoginVm>()
-                            NavHelper(navController, loginVm.navigate.value)
-                            LoginScreen(loginVm::login)
-                        }
+                    NeedsPermission(
+                        cameraPermission,
+                        "Please grant Camera permissions",
+                        "For a video conference, camera permission has to be granted"
+                    ) {
+                        NavHost(navController, startDestination = Screen.LOGIN.route) {
 
-                        composable("loading?userName={userName}",
-                            arguments = listOf(navArgument("userName") {
-                                nullable = false
-                                type = NavType.StringType
-                            })
-                        ) { backStackEntry ->
+                            composable(Screen.LOGIN.route) {
+                                val loginVm = hiltViewModel<LoginVm>()
+                                NavHelper(navController, loginVm.navigate.value)
+                                LoginScreen(loginVm::login)
+                            }
 
-                            val userName = backStackEntry.arguments!!.getString("userName")!!
+                            composable(
+                                "loading?userName={userName}",
+                                arguments = listOf(navArgument("userName") {
+                                    nullable = false
+                                    type = NavType.StringType
+                                })
+                            ) { backStackEntry ->
 
-                            val roomVm: RoomVm by viewModels { roomVmServiceFactory.create(userName) }
-                            NavHelper(navController, roomVm.navigate.value)
-                            LoadingScreen()
-                        }
+                                val userName = backStackEntry.arguments!!.getString("userName")!!
 
-                        composable(Screen.ROOM.route) {
-                            val roomVm: RoomVm by viewModels()
-                            VideosListComposable(roomVm.peers)
+                                val roomVm: RoomVm by viewModels {
+                                    roomVmServiceFactory.create(
+                                        userName
+                                    )
+                                }
+                                NavHelper(navController, roomVm.navigate.value)
+                                LoadingScreen()
+                            }
+
+                            composable(Screen.ROOM.route) {
+                                val roomVm: RoomVm by viewModels()
+                                VideosListComposable(roomVm.peers)
+                            }
                         }
                     }
-
                 }
             }
         }
@@ -78,3 +98,4 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+
