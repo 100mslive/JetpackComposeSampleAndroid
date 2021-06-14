@@ -24,6 +24,18 @@ import timber.log.Timber
 class RoomVm constructor(private val roomRepository: RoomRepository, userName: String) :
     NavigableViewModel() {
 
+    private val peerComparator = Comparator<HMSPeer> { o1, o2 ->
+        Timber.d("Sorting")
+        if (o1.isLocal && o2.isLocal) {
+            throw Exception("Two locals can't be present at the same time")
+        }
+        when {
+            o1.isLocal -> -1
+            o2.isLocal -> 1
+            else -> o1.peerID.compareTo(o2.peerID)
+        }
+    }
+
     private val disposable = CompositeDisposable()
 
     private val _peers: MutableState<List<HMSPeer>> =
@@ -69,7 +81,8 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
                 override fun onPeerUpdate(type: HMSPeerUpdate, peer: HMSPeer) {
                     // Handle peer updates.
                     when (type) {
-                        HMSPeerUpdate.PEER_JOINED -> _peers.value = _peers.value.plus(peer)
+                        HMSPeerUpdate.PEER_JOINED -> _peers.value =
+                            _peers.value.plus(peer).sortedWith(peerComparator)
                         HMSPeerUpdate.PEER_LEFT -> _peers.value =
                             _peers.value.filter { currentPeer -> currentPeer.peerID != peer.peerID }
                         HMSPeerUpdate.VIDEO_TOGGLED -> {
@@ -104,7 +117,7 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
                             if (track.type == HMSTrackType.VIDEO) {
                                 _peers.value =
                                     _peers.value.filter { currentPeer -> currentPeer.peerID != peer.peerID }
-                                        .plus(peer)
+                                        .plus(peer).sortedWith(peerComparator)
                             } else {
                                 Timber.d("Not processed, $type, $track")
                             }
@@ -121,3 +134,4 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
         super.onCleared()
     }
 }
+
