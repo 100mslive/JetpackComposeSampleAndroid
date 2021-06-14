@@ -24,32 +24,30 @@ fun NeedsPermission(
     // read the current permission state using collectAsState (this will automatically
     // collect changes and trigger recomposition)
     val hasPermission = permissionsState.hasPermission.collectAsState(null).value ?: return
-
-    Column(
+    if (hasPermission) {
+        permissionGrantedContent()
+    } else Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
 
-        if (hasPermission) {
-            permissionGrantedContent()
-        } else {
-            // user hasn't granted permission
-            permissionsState.shouldShowRationale.collectAsState(null).value?.let { showPrompt ->
-                if (showPrompt) {
-                    Text(deniedPermissionRationaleText)
-                    Spacer(Modifier.height(4.dp))
-                    Button(onClick = { permissionsState.launchPermissionRequest() }) {
-                        Text("Give permissions")
-                    }
-                } else {
-                    Text(initialRationaleText)
-                    Spacer(Modifier.height(4.dp))
-                    Button(onClick = { permissionsState.launchPermissionRequest() }) {
-                        Text("OK")
-                    }
+        // user hasn't granted permission
+        permissionsState.shouldShowRationale.collectAsState(null).value?.let { showPrompt ->
+            if (showPrompt) {
+                Text(deniedPermissionRationaleText)
+                Spacer(Modifier.height(4.dp))
+                Button(onClick = { permissionsState.launchPermissionRequest() }) {
+                    Text("Give permissions")
+                }
+            } else {
+                Text(initialRationaleText)
+                Spacer(Modifier.height(4.dp))
+                Button(onClick = { permissionsState.launchPermissionRequest() }) {
+                    Text("OK")
                 }
             }
         }
+
     }
 }
