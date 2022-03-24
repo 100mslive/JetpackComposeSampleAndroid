@@ -14,7 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navArgument
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.aniketkadam.videocon.baseviewmodels.NavHelper
 import com.aniketkadam.videocon.joinroom.RoomVm
@@ -30,13 +30,13 @@ import com.aniketkadam.videocon.ui.theme.VideoConTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@ExperimentalFoundationApi
+@InternalComposeApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
     lateinit var roomVmServiceFactory: RoomVmAssistedFactory
 
-    @InternalComposeApi
-    @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

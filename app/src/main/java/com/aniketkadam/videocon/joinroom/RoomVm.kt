@@ -15,10 +15,12 @@ import live.hms.video.media.tracks.HMSTrackType
 import live.hms.video.sdk.HMSUpdateListener
 import live.hms.video.sdk.models.HMSMessage
 import live.hms.video.sdk.models.HMSPeer
+import live.hms.video.sdk.models.HMSRoleChangeRequest
 import live.hms.video.sdk.models.HMSRoom
 import live.hms.video.sdk.models.enums.HMSPeerUpdate
 import live.hms.video.sdk.models.enums.HMSRoomUpdate
 import live.hms.video.sdk.models.enums.HMSTrackUpdate
+import live.hms.video.sdk.models.trackchangerequest.HMSChangeTrackStateRequest
 import timber.log.Timber
 
 class RoomVm constructor(private val roomRepository: RoomRepository, userName: String) :
@@ -62,6 +64,10 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
         .map {
             Timber.d("A token response was received")
             roomRepository.joinRoom(name, it.token, object : HMSUpdateListener {
+                override fun onChangeTrackStateRequest(details: HMSChangeTrackStateRequest) {
+
+                }
+
                 override fun onError(error: HMSException) {
                     Timber.e("There was an error ${error.description}")
 //                    Error doesn't necessarily mean an unrecoverable error.
@@ -98,6 +104,10 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
                         }
                     }
                     Timber.d("There was a peer update: $type")
+                }
+
+                override fun onRoleChangeRequest(request: HMSRoleChangeRequest) {
+
                 }
 
                 override fun onRoomUpdate(type: HMSRoomUpdate, hmsRoom: HMSRoom) {
