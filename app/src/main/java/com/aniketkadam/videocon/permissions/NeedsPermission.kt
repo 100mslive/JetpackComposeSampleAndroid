@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @SuppressLint("MissingPermission")
-@ExperimentalCoroutinesApi
 @Composable
 fun NeedsPermission(
     permissionsState: PermissionState,

@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.InternalComposeApi
@@ -30,7 +29,6 @@ import com.aniketkadam.videocon.ui.theme.VideoConTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-@ExperimentalFoundationApi
 @InternalComposeApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
