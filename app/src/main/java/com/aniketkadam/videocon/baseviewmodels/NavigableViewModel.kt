@@ -18,13 +18,10 @@ fun NavHelper(navController: NavHostController, key: Screen?) {
     remember(key) {
         with(navController) {
             when (key) {
-                Screen.ROOM -> {
-                    navigate(key.route)
-                }
                 Screen.LOGIN -> {
                     navigate(key.route)
                 }
-                is Screen.Loading -> {
+                is Screen.Room -> {
                     navigate("${key.route}?userName=${key.userName}")
                 }
                 null -> {

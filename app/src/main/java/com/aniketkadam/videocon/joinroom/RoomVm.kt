@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import com.aniketkadam.videocon.baseviewmodels.NavigableViewModel
 import com.aniketkadam.videocon.navigation.Screen
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -22,8 +23,10 @@ import live.hms.video.sdk.models.enums.HMSRoomUpdate
 import live.hms.video.sdk.models.enums.HMSTrackUpdate
 import live.hms.video.sdk.models.trackchangerequest.HMSChangeTrackStateRequest
 import timber.log.Timber
+import javax.inject.Inject
 
-class RoomVm constructor(private val roomRepository: RoomRepository, userName: String) :
+@HiltViewModel
+class RoomVm @Inject constructor(private val roomRepository: RoomRepository) :
     NavigableViewModel() {
 
     private val peerComparator = Comparator<HMSPeer> { o1, o2 ->
@@ -44,11 +47,14 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
         mutableStateOf(emptyList(), neverEqualPolicy())
     val peers: State<List<HMSPeer>> = _peers
 
+    private val _loadingState: MutableState<Boolean> = mutableStateOf(true)
+    val loadingState: State<Boolean> = _loadingState
+
     private val chatMessages: MutableState<List<HMSMessage>> = mutableStateOf(emptyList())
 
     init {
         disposable.add(
-            roomUpdatesObservable(userName)
+            roomUpdatesObservable()
                 .subscribeOn(Schedulers.io())
                 .subscribe(
                     {},
@@ -57,13 +63,13 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
         )
     }
 
-    private fun roomUpdatesObservable(name: String): Observable<Unit> = roomRepository.login(name)
+    private fun roomUpdatesObservable(): Observable<Unit> = roomRepository.login()
         .doOnError {
             Timber.e("Error getting token: ${it.message}")
         }
         .map {
             Timber.d("A token response was received")
-            roomRepository.joinRoom(name, it.token, object : HMSUpdateListener {
+            roomRepository.joinRoom(roomRepository.getName(), it.token, object : HMSUpdateListener {
                 override fun onChangeTrackStateRequest(details: HMSChangeTrackStateRequest) {
 
                 }
@@ -77,7 +83,8 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
                     Timber.d("Room joined")
                     // Loading complete, move to display
                     _peers.value = room.peerList.asList()
-                    _navigate.value = Screen.ROOM
+//                    _navigate.value = Screen.ROOM(roomRepository.getName())
+                    _loadingState.value = false
                 }
 
                 override fun onMessageReceived(message: HMSMessage) {
@@ -138,9 +145,13 @@ class RoomVm constructor(private val roomRepository: RoomRepository, userName: S
             })
         }
 
+    fun leave(onSuccess: () -> Unit) {
+        _peers.value = emptyList()
+        roomRepository.leaveRoom(onSuccess)
+    }
+
     override fun onCleared() {
-        roomRepository.leaveRoom()
-        disposable.dispose()
+        leave { disposable.dispose() }
         super.onCleared()
     }
 }

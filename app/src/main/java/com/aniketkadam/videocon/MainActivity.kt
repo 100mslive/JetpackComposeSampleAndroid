@@ -5,35 +5,20 @@ import android.app.PictureInPictureParams
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.InternalComposeApi
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
-import com.aniketkadam.videocon.baseviewmodels.NavHelper
-import com.aniketkadam.videocon.joinroom.RoomVm
-import com.aniketkadam.videocon.joinroom.VideosListComposable
-import com.aniketkadam.videocon.joinroom.di.RoomVmAssistedFactory
-import com.aniketkadam.videocon.loading.LoadingScreen
-import com.aniketkadam.videocon.login.LoginScreen
-import com.aniketkadam.videocon.login.LoginVm
 import com.aniketkadam.videocon.navigation.Screen
 import com.aniketkadam.videocon.permissions.NeedsPermission
 import com.aniketkadam.videocon.permissions.checkSelfPermissionState
 import com.aniketkadam.videocon.ui.theme.VideoConTheme
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @InternalComposeApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject
-    lateinit var roomVmServiceFactory: RoomVmAssistedFactory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,35 +39,9 @@ class MainActivity : ComponentActivity() {
                     ) {
                         NavHost(navController, startDestination = Screen.LOGIN.route) {
 
-                            composable(Screen.LOGIN.route) {
-                                val loginVm = hiltViewModel<LoginVm>()
-                                NavHelper(navController, loginVm.navigate.value)
-                                LoginScreen(loginVm::login)
-                            }
+                            getLoginScreen(navController)
 
-                            composable(
-                                "loading?userName={userName}",
-                                arguments = listOf(navArgument("userName") {
-                                    nullable = false
-                                    type = NavType.StringType
-                                })
-                            ) { backStackEntry ->
-
-                                val userName = backStackEntry.arguments!!.getString("userName")!!
-
-                                val roomVm: RoomVm by viewModels {
-                                    roomVmServiceFactory.create(
-                                        userName
-                                    )
-                                }
-                                NavHelper(navController, roomVm.navigate.value)
-                                LoadingScreen()
-                            }
-
-                            composable(Screen.ROOM.route) {
-                                val roomVm: RoomVm by viewModels()
-                                VideosListComposable(roomVm.peers)
-                            }
+                            getRoomScreen(navController, ::runOnUiThread)
                         }
                     }
                 }

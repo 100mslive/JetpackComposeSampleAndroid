@@ -9,6 +9,6 @@ import javax.inject.Inject
 class LoginVm @Inject constructor() : NavigableViewModel() {
     fun login(name: String) {
         val safeName = if (name.isEmpty()) "Android User" else name
-        _navigate.value = Screen.Loading(safeName)
+        _navigate.value = Screen.Room(safeName)
     }
 }
