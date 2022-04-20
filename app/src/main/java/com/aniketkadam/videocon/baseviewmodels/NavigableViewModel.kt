@@ -16,21 +16,7 @@ open class NavigableViewModel : ViewModel() {
 @Composable
 fun NavHelper(navController: NavHostController, key: Screen?) {
     remember(key) {
-        with(navController) {
-            when (key) {
-                Screen.ROOM -> {
-                    navigate(key.route)
-                }
-                Screen.LOGIN -> {
-                    navigate(key.route)
-                }
-                is Screen.Loading -> {
-                    navigate("${key.route}?userName=${key.userName}")
-                }
-                null -> {
-                }
-            }
-        }
+        key?.navigate(navController)
         key
     }
 }
