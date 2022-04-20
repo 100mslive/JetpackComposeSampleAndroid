@@ -28,7 +28,7 @@ fun NavGraphBuilder.getRoomScreen(
     runOnUiThread: (Runnable) -> Unit
 ) {
     composable(
-        "room?userName={userName}",
+        Screen.Room.paramsRoute,
         arguments = listOf(navArgument("userName") {
             nullable = false
             type = NavType.StringType
