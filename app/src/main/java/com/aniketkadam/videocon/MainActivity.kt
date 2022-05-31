@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
 
                             getLoginScreen(navController)
 
-                            getRoomScreen(navController, ::runOnUiThread)
+                            getRoomScreen(navController)
                         }
                     }
                 }

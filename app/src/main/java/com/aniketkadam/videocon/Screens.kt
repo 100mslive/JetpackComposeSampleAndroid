@@ -14,6 +14,9 @@ import com.aniketkadam.videocon.loading.LoadingScreen
 import com.aniketkadam.videocon.login.LoginScreen
 import com.aniketkadam.videocon.login.LoginVm
 import com.aniketkadam.videocon.navigation.Screen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 fun NavGraphBuilder.getLoginScreen(navController: NavHostController) {
     composable(Screen.LOGIN.route) {
@@ -24,8 +27,7 @@ fun NavGraphBuilder.getLoginScreen(navController: NavHostController) {
 }
 
 fun NavGraphBuilder.getRoomScreen(
-    navController: NavHostController,
-    runOnUiThread: (Runnable) -> Unit
+    navController: NavHostController
 ) {
     composable(
         Screen.Room.paramsRoute,
@@ -41,7 +43,7 @@ fun NavGraphBuilder.getRoomScreen(
         } else {
             BackHandler {
                 roomVm.leave {
-                    runOnUiThread {
+                    CoroutineScope(Dispatchers.Main).launch {
                         navController.navigate(Screen.LOGIN.route)
                     }
                 }
