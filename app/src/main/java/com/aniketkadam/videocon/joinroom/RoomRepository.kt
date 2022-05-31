@@ -1,6 +1,7 @@
 package com.aniketkadam.videocon.joinroom
 
 import androidx.lifecycle.SavedStateHandle
+import com.aniketkadam.videocon.BuildConfig
 import com.aniketkadam.videocon.tokenretriever.TokenRequest
 import com.aniketkadam.videocon.tokenretriever.TokenRequestApi
 import com.aniketkadam.videocon.tokenretriever.TokenResponse
@@ -22,7 +23,7 @@ class RoomRepository @Inject constructor(
 
     fun login(
         userName: String = savedStateHandle.get<String>("userName")!!,
-        roomId: String = "620c893b71bd215ae042225e"
+        roomId: String = BuildConfig.ROOM_ID
     ): Observable<TokenResponse> {
         return tokenRequestApi.getToken(TokenRequest(userId = userName, roomId = roomId))
     }

@@ -21,6 +21,7 @@ android {
             useSupportLibrary true
         }
         buildConfigField "String", "TOKEN_ENDPOINT", TOKEN_ENDPOINT
+        buildConfigField "String", "ROOM_ID", ROOM_ID
     }
 
     buildTypes {
