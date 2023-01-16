@@ -82,7 +82,7 @@ class RoomVm @Inject constructor(private val roomRepository: RoomRepository) :
                 override fun onJoin(room: HMSRoom) {
                     Timber.d("Room joined")
                     // Loading complete, move to display
-                    _peers.value = room.peerList.asList()
+                    _peers.value = room.peerList
 //                    _navigate.value = Screen.ROOM(roomRepository.getName())
                     _loadingState.value = false
                 }
@@ -102,6 +102,10 @@ class RoomVm @Inject constructor(private val roomRepository: RoomRepository) :
                             Timber.d("${peer.name} video toggled")
                         }
 
+                        HMSPeerUpdate.ROLE_CHANGED,
+                        HMSPeerUpdate.NAME_CHANGED,
+                        HMSPeerUpdate.METADATA_CHANGED,
+                        HMSPeerUpdate.NETWORK_QUALITY_UPDATED,
                         HMSPeerUpdate.AUDIO_TOGGLED,
                         HMSPeerUpdate.BECAME_DOMINANT_SPEAKER,
                         HMSPeerUpdate.NO_DOMINANT_SPEAKER,
@@ -109,6 +113,7 @@ class RoomVm @Inject constructor(private val roomRepository: RoomRepository) :
                         HMSPeerUpdate.STARTED_SPEAKING,
                         HMSPeerUpdate.STOPPED_SPEAKING -> {
                         }
+
                     }
                     Timber.d("There was a peer update: $type")
                 }
@@ -125,8 +130,6 @@ class RoomVm @Inject constructor(private val roomRepository: RoomRepository) :
                     // Somebody's audio/video changed
                     Timber.d("OnTrackUpdate: $type")
                     when (type) {
-                        HMSTrackUpdate.TRACK_MUTED,
-                        HMSTrackUpdate.TRACK_UNMUTED,
                         HMSTrackUpdate.TRACK_ADDED,
                         HMSTrackUpdate.TRACK_REMOVED
                         -> {
@@ -138,6 +141,12 @@ class RoomVm @Inject constructor(private val roomRepository: RoomRepository) :
                             } else {
                                 Timber.d("Not processed, $type, $track")
                             }
+                        }
+                        HMSTrackUpdate.TRACK_MUTED,
+                        HMSTrackUpdate.TRACK_UNMUTED,
+                        HMSTrackUpdate.TRACK_DEGRADED,
+                        HMSTrackUpdate.TRACK_RESTORED -> {
+                            // Change the UI on tracks like mute/unmute.
                         }
                         HMSTrackUpdate.TRACK_DESCRIPTION_CHANGED -> Timber.d("Other mute/unmute $type, $track")
                     }

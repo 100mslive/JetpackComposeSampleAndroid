@@ -71,10 +71,10 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
 
     // video sdk 100ms
-    implementation 'com.github.100mslive:android-sdk:2.3.9'
+    implementation 'live.100ms:android-sdk:2.5.6'
     // other dependencies for 100ms
-    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
-    implementation 'com.google.code.gson:gson:2.8.7'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'org.jetbrains:annotations:20.1.0'
 
     // Dagger
