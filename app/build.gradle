@@ -71,7 +71,7 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
 
     // video sdk 100ms
-    implementation 'live.100ms:android-sdk:2.5.6'
+    implementation 'live.100ms:android-sdk:2.5.8'
     // other dependencies for 100ms
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     implementation 'com.google.code.gson:gson:2.8.9'
